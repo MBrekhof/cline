@@ -10,34 +10,49 @@ import { LmStudioHandler } from "./providers/lmstudio"
 import { GeminiHandler } from "./providers/gemini"
 import { OpenAiNativeHandler } from "./providers/openai-native"
 import { ApiStream } from "./transform/stream"
+import { LoggingApiHandler } from "./logging/api-logger"
 
 export interface ApiHandler {
-	createMessage(systemPrompt: string, messages: Anthropic.Messages.MessageParam[]): ApiStream
-	getModel(): { id: string; info: ModelInfo }
+    createMessage(systemPrompt: string, messages: Anthropic.Messages.MessageParam[]): ApiStream
+    getModel(): { id: string; info: ModelInfo }
 }
 
 export function buildApiHandler(configuration: ApiConfiguration): ApiHandler {
-	const { apiProvider, ...options } = configuration
-	switch (apiProvider) {
-		case "anthropic":
-			return new AnthropicHandler(options)
-		case "openrouter":
-			return new OpenRouterHandler(options)
-		case "bedrock":
-			return new AwsBedrockHandler(options)
-		case "vertex":
-			return new VertexHandler(options)
-		case "openai":
-			return new OpenAiHandler(options)
-		case "ollama":
-			return new OllamaHandler(options)
-		case "lmstudio":
-			return new LmStudioHandler(options)
-		case "gemini":
-			return new GeminiHandler(options)
-		case "openai-native":
-			return new OpenAiNativeHandler(options)
-		default:
-			return new AnthropicHandler(options)
-	}
+    const { apiProvider, ...options } = configuration
+    let handler: ApiHandler
+    
+    switch (apiProvider) {
+        case "anthropic":
+            handler = new AnthropicHandler(options)
+            break
+        case "openrouter":
+            handler = new OpenRouterHandler(options)
+            break
+        case "bedrock":
+            handler = new AwsBedrockHandler(options)
+            break
+        case "vertex":
+            handler = new VertexHandler(options)
+            break
+        case "openai":
+            handler = new OpenAiHandler(options)
+            break
+        case "ollama":
+            handler = new OllamaHandler(options)
+            break
+        case "lmstudio":
+            handler = new LmStudioHandler(options)
+            break
+        case "gemini":
+            handler = new GeminiHandler(options)
+            break
+        case "openai-native":
+            handler = new OpenAiNativeHandler(options)
+            break
+        default:
+            handler = new AnthropicHandler(options)
+    }
+
+    // Wrap the handler with logging functionality
+    return new LoggingApiHandler(handler)
 }
